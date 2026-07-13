@@ -1,4 +1,4 @@
-import { jsonResponse, loadNetlifyConfig } from "../../src/netlify-runtime.js";
+import { jsonResponse, loadNetlifyConfig } from "../../src/netlify-http.js";
 import { queueSlackCommand } from "../../src/netlify-slack.js";
 
 export default async (request: Request) => {

@@ -10,6 +10,15 @@
   node_bundler = "esbuild"
   external_node_modules = ["sharp"]
 
+[functions."direct-image"]
+  included_files = ["node_modules/@img/sharp-wasm32/lib/*"]
+
+[functions."image-api"]
+  included_files = ["node_modules/@img/sharp-wasm32/lib/*"]
+
+[functions."slack-generate-background"]
+  included_files = ["node_modules/@img/sharp-wasm32/lib/*"]
+
 [[redirects]]
   from = "/health"
   to = "/.netlify/functions/health"

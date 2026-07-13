@@ -1,14 +1,15 @@
+import { createNetlifyImageService } from "../../src/netlify-runtime.js";
 import {
-  createNetlifyImageService,
   errorResponse,
   hasValidApiToken,
   jsonResponse,
+  loadNetlifyConfig,
   netlifyImageRequestSchema,
   readJsonBody,
-} from "../../src/netlify-runtime.js";
+} from "../../src/netlify-http.js";
 
 export default async (request: Request) => {
-  const { config, imageService } = createNetlifyImageService();
+  const config = loadNetlifyConfig();
 
   if (!hasValidApiToken(request, config.API_TOKEN)) {
     return jsonResponse({ error: "Invalid API token" }, { status: 401 });
@@ -26,6 +27,7 @@ export default async (request: Request) => {
   }
 
   try {
+    const { imageService } = createNetlifyImageService();
     const input = netlifyImageRequestSchema.parse(await readJsonBody(request));
     const result = await imageService.create({
       prompt: input.prompt,

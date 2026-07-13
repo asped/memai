@@ -1,8 +1,5 @@
-import {
-  createNetlifyImageService,
-  errorResponse,
-  netlifyImageRequestSchema,
-} from "../../src/netlify-runtime.js";
+import { errorResponse, netlifyImageRequestSchema } from "../../src/netlify-http.js";
+import { createNetlifyImageService } from "../../src/netlify-runtime.js";
 
 export default async (request: Request) => {
   if (request.method !== "GET") {

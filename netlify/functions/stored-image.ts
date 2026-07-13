@@ -1,5 +1,5 @@
 import { readNetlifyImage } from "../../src/netlify-image-store.js";
-import { jsonResponse } from "../../src/netlify-runtime.js";
+import { jsonResponse } from "../../src/netlify-http.js";
 
 const validImageKey = /^[0-9a-f-]+\.(?:jpg|png|webp)$/i;
 
