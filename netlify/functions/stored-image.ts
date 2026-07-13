@@ -1,5 +1,5 @@
 import { readNetlifyImage } from "../../src/netlify-image-store.js";
-import { jsonResponse } from "../../src/netlify-http.js";
+import { getNetlifyRouteValue, jsonResponse } from "../../src/netlify-http.js";
 
 const validImageKey = /^[0-9a-f-]+\.(?:jpg|png|webp)$/i;
 
@@ -8,7 +8,7 @@ export default async (request: Request) => {
     return new Response("Method not allowed", { status: 405, headers: { allow: "GET" } });
   }
 
-  const key = new URL(request.url).searchParams.get("key") ?? "";
+  const key = getNetlifyRouteValue(request, "key", "/generated-images/");
   if (!validImageKey.test(key)) {
     return jsonResponse({ error: "Image not found" }, { status: 404 });
   }

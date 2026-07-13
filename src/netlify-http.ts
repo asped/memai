@@ -46,3 +46,23 @@ export async function readJsonBody(request: Request) {
 export function hasValidApiToken(request: Request, token: string | undefined) {
   return !token || request.headers.get("authorization") === `Bearer ${token}`;
 }
+
+export function getNetlifyRouteValue(
+  request: Request,
+  searchParameter: string,
+  pathPrefix: string,
+) {
+  const url = new URL(request.url);
+  const queryValue = url.searchParams.get(searchParameter);
+  if (queryValue && queryValue !== ":splat") return queryValue;
+
+  const prefixIndex = url.pathname.indexOf(pathPrefix);
+  if (prefixIndex === -1) return "";
+
+  const encoded = url.pathname.slice(prefixIndex + pathPrefix.length);
+  try {
+    return decodeURIComponent(encoded);
+  } catch {
+    return "";
+  }
+}

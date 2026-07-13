@@ -1,4 +1,8 @@
-import { errorResponse, netlifyImageRequestSchema } from "../../src/netlify-http.js";
+import {
+  errorResponse,
+  getNetlifyRouteValue,
+  netlifyImageRequestSchema,
+} from "../../src/netlify-http.js";
 import { createNetlifyImageService } from "../../src/netlify-runtime.js";
 
 export default async (request: Request) => {
@@ -9,7 +13,7 @@ export default async (request: Request) => {
   try {
     const url = new URL(request.url);
     const input = netlifyImageRequestSchema.parse({
-      prompt: url.searchParams.get("prompt") ?? "",
+      prompt: getNetlifyRouteValue(request, "prompt", "/images/"),
       ...(url.searchParams.get("quality") ? { quality: url.searchParams.get("quality") } : {}),
     });
     const { imageService } = createNetlifyImageService();
