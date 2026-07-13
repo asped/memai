@@ -22,7 +22,7 @@ cp .env.example .env
 npm run dev
 ```
 
-Open [http://localhost:4317](http://localhost:4317). Generated files are written to `data/images/`.
+Open [http://localhost:4317](http://localhost:4317) and log in with `BROWSER_USERNAME` and `BROWSER_PASSWORD`. Generated files are written to `data/images/`.
 
 The default delivered image is a 640×640 low-quality JPEG. GPT Image 2 requires at least 655,360 generated pixels, so MemAI requests the smallest valid square (816×816) and downsizes it to the configured `IMAGE_SIZE`. This is faster and lighter than the previous 1024×1024 default. Change `IMAGE_QUALITY`, `IMAGE_SIZE`, or `OPENAI_IMAGE_MODEL` in `.env` when needed.
 
@@ -32,17 +32,18 @@ POST with a JSON body:
 
 ```bash
 curl http://localhost:4317/v1/images \
+  -H "authorization: Bearer $API_TOKEN" \
   -H 'content-type: application/json' \
   -d '{"prompt":"the deploy works, but nobody knows why"}'
 ```
 
-To generate directly from a browser, put the URL-encoded prompt in the path:
+An authenticated browser session can also generate directly by putting the URL-encoded prompt in the path:
 
 ```bash
 open 'http://localhost:4317/images/the%20deploy%20works%2C%20but%20nobody%20knows%20why'
 ```
 
-`GET /images/:prompt` returns the generated JPEG directly, so it can also be used as an `<img src="...">`. An optional `quality` query parameter accepts `low`, `medium`, `high`, or `auto`. Responses use `Cache-Control: no-store` because every request creates a new, billable image.
+`GET /images/:prompt` returns the generated JPEG directly, but only with a valid browser login cookie. An optional `quality` query parameter accepts `low`, `medium`, `high`, or `auto`. Responses use `Cache-Control: no-store` because every request creates a new, billable image.
 
 Response:
 
@@ -56,7 +57,9 @@ Response:
 }
 ```
 
-Set `API_TOKEN` to require `Authorization: Bearer <token>` on this route. Leave it empty for the zero-configuration browser demo; a public deployment should add identity-aware auth and rate limiting before exposing generation to untrusted users.
+`POST /v1/images` always requires `Authorization: Bearer <API_TOKEN>` and fails closed when `API_TOKEN` is unset. The web UI uses a separate signed, HttpOnly session cookie obtained through `POST /auth/login`; it never receives or stores the API bearer. Login and generation POSTs require the exact same origin. Netlify additionally rate-limits login and paid generation functions by client IP.
+
+Only `GET /generated-images/:id` remains public. Generated filenames use random UUIDs, and public reads are necessary for Slack to render the completed image. Generation endpoints, direct Netlify Function URLs, and the browser shortcut all enforce their respective authentication.
 
 ## Slack slash command
 
@@ -64,7 +67,8 @@ Set `API_TOKEN` to require `Authorization: Bearer <token>` on this route. Leave 
 2. Create a Slack app and a slash command named `/memai`.
 3. Set its Request URL to `https://YOUR_DOMAIN/integrations/slack/commands`.
 4. Copy the app's Signing Secret into `SLACK_SIGNING_SECRET`.
-5. Use `/memai the sprint scope arriving on Friday afternoon`.
+5. Optionally copy the workspace ID into `SLACK_TEAM_ID` to reject signed requests from any other workspace.
+6. Re-deploy, reinstall the Slack app if Slack asks, and use `/memai the sprint scope arriving on Friday afternoon`.
 
 The handler validates Slack's HMAC signature and five-minute replay window. It acknowledges immediately, generates in the background, then posts through Slack's temporary `response_url`. This is necessary because Slack requires acknowledgment within three seconds while image generation can take much longer.
 
@@ -76,7 +80,13 @@ Configure these environment variables in Netlify:
 
 ```text
 OPENAI_API_KEY
+API_TOKEN
+BROWSER_USERNAME=admin
+BROWSER_PASSWORD
+SESSION_SECRET
 SLACK_SIGNING_SECRET
+# Optional single-workspace lock
+SLACK_TEAM_ID
 OPENAI_IMAGE_MODEL=gpt-image-2
 IMAGE_QUALITY=low
 IMAGE_SIZE=640x640
@@ -107,7 +117,7 @@ Start the API with `npm run dev`, restart Cursor after opening the project, and 
 /memai the database migration watching everyone roll back
 ```
 
-For a deployed API, change `MEMAI_API_URL` in `.cursor/mcp.json`. If `API_TOKEN` is enabled, add `MEMAI_API_TOKEN` to the MCP server environment.
+The checked-in configuration points to `https://memai-138.netlify.app`. The MCP process loads `MEMAI_API_TOKEN` from the ignored project `.env`, so the bearer never enters `.cursor/mcp.json` or Git. Restart Cursor after changing the file or token.
 
 ## Codex
 
@@ -115,11 +125,11 @@ Codex can call the same MCP tool. Register the project server once (replace the 
 
 ```bash
 codex mcp add memai \
-  --env MEMAI_API_URL=http://localhost:4317 \
+  --env MEMAI_API_URL=https://memai-138.netlify.app \
   -- npm --prefix /Users/axel/Projects/ai-giphy run dev:mcp
 ```
 
-Then start the API with `npm run dev`, begin a new Codex task, and ask it to use `create_memai`.
+The server reads `MEMAI_API_TOKEN` from the ignored project `.env`. Begin a new Codex task after changing the registration, then ask it to use `create_memai`.
 
 For Codex CLI builds that support custom prompt commands, an optional slash-command shim is included:
 

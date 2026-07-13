@@ -23,6 +23,10 @@ export default async (request: Request) => {
     }
 
     const form = new URLSearchParams(body);
+    if (config.SLACK_TEAM_ID && form.get("team_id") !== config.SLACK_TEAM_ID) {
+      console.error("Rejected a Slack request from a different workspace");
+      return;
+    }
     const prompt = form.get("text")?.trim() ?? "";
     const responseUrl = form.get("response_url") ?? "";
     if (!prompt) return;

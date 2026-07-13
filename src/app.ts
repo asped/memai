@@ -1,6 +1,14 @@
 import path from "node:path";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import express, { type ErrorRequestHandler, type RequestHandler } from "express";
 import { z } from "zod";
+import {
+  clearBrowserSessionCookie,
+  createBrowserSessionCookie,
+  credentialsAreValid,
+  hasValidBrowserSession,
+  isBrowserAuthConfigured,
+} from "./browser-auth.js";
 import type { AppConfig } from "./config.js";
 import type { ImageService } from "./image-service.js";
 import { finishSlackCommand, verifySlackRequest } from "./slack.js";
@@ -11,8 +19,21 @@ const imageRequestSchema = z.object({
   quality: z.enum(imageQualities).optional(),
 });
 
+const loginRequestSchema = z.object({
+  username: z.string().min(1).max(100),
+  password: z.string().min(1).max(500),
+});
+
 export interface AppDependencies {
-  config: Pick<AppConfig, "API_TOKEN" | "SLACK_SIGNING_SECRET">;
+  config: Pick<
+    AppConfig,
+    | "API_TOKEN"
+    | "BROWSER_USERNAME"
+    | "BROWSER_PASSWORD"
+    | "SESSION_SECRET"
+    | "SLACK_SIGNING_SECRET"
+    | "SLACK_TEAM_ID"
+  >;
   imageService: ImageService;
   imageDirectory: string;
   publicDirectory: string;
@@ -50,6 +71,13 @@ export function createApp(dependencies: AppDependencies) {
       }
 
       const form = new URLSearchParams(body);
+      if (
+        dependencies.config.SLACK_TEAM_ID &&
+        form.get("team_id") !== dependencies.config.SLACK_TEAM_ID
+      ) {
+        response.status(403).json({ error: "Slack workspace is not allowed" });
+        return;
+      }
       const prompt = form.get("text")?.trim() ?? "";
       const responseUrl = form.get("response_url") ?? "";
 
@@ -78,9 +106,40 @@ export function createApp(dependencies: AppDependencies) {
 
   app.use(express.json({ limit: "16kb" }));
 
+  const hasSameOrigin = (request: express.Request) => {
+    const origin = request.header("origin");
+    if (!origin) return false;
+    try {
+      return new URL(origin).origin === `${request.protocol}://${request.header("host")}`;
+    } catch {
+      return false;
+    }
+  };
+
+  const requireSameOrigin: RequestHandler = (request, response, next) => {
+    if (hasSameOrigin(request)) {
+      next();
+      return;
+    }
+    response.status(403).json({ error: "Invalid request origin" });
+  };
+
+  const requireBrowserSession: RequestHandler = (request, response, next) => {
+    if (hasValidBrowserSession(request.header("cookie"), dependencies.config)) {
+      next();
+      return;
+    }
+    response.status(401).json({ error: "Login required" });
+  };
+
   const requireApiToken: RequestHandler = (request, response, next) => {
     const token = dependencies.config.API_TOKEN;
-    if (!token || request.header("authorization") === `Bearer ${token}`) {
+    const authorization = request.header("authorization") ?? "";
+    const actual = createHmac("sha256", "memai-api-token").update(authorization).digest();
+    const expected = createHmac("sha256", "memai-api-token")
+      .update(token ? `Bearer ${token}` : "missing-token")
+      .digest();
+    if (token && timingSafeEqual(actual, expected)) {
       next();
       return;
     }
@@ -91,7 +150,47 @@ export function createApp(dependencies: AppDependencies) {
     response.json({ ok: true });
   });
 
-  app.get("/images/:prompt", async (request, response, next) => {
+  app.get("/auth/session", (request, response) => {
+    const authenticated = hasValidBrowserSession(request.header("cookie"), dependencies.config);
+    response
+      .status(authenticated ? 200 : 401)
+      .set("cache-control", "no-store")
+      .json({
+        authenticated,
+        ...(authenticated ? { username: dependencies.config.BROWSER_USERNAME } : {}),
+      });
+  });
+
+  app.post("/auth/login", requireSameOrigin, (request, response) => {
+    if (!isBrowserAuthConfigured(dependencies.config)) {
+      response.status(503).json({ error: "Browser login is not configured" });
+      return;
+    }
+    const input = loginRequestSchema.parse(request.body);
+    if (!credentialsAreValid(input.username, input.password, dependencies.config)) {
+      response.status(401).json({ error: "Invalid username or password" });
+      return;
+    }
+    response
+      .set({
+        "cache-control": "no-store",
+        "set-cookie": createBrowserSessionCookie(dependencies.config, {
+          secure: request.protocol === "https",
+        }),
+      })
+      .json({ authenticated: true, username: dependencies.config.BROWSER_USERNAME });
+  });
+
+  app.post("/auth/logout", requireSameOrigin, (_request, response) => {
+    response
+      .set({
+        "cache-control": "no-store",
+        "set-cookie": clearBrowserSessionCookie(false),
+      })
+      .json({ authenticated: false });
+  });
+
+  app.get("/images/:prompt", requireBrowserSession, async (request, response, next) => {
     try {
       const input = imageRequestSchema.parse({
         prompt: request.params.prompt,
@@ -139,6 +238,7 @@ export function createApp(dependencies: AppDependencies) {
     }
   };
 
+  app.post("/browser/images", requireSameOrigin, requireBrowserSession, createImage);
   app.post("/v1/images", requireApiToken, createImage);
 
   app.use(express.static(dependencies.publicDirectory));
@@ -156,8 +256,12 @@ export function createApp(dependencies: AppDependencies) {
     }
 
     const message = error instanceof Error ? error.message : "Unexpected error";
-    const status = /Prompt (cannot|must)/.test(message) ? 400 : 500;
-    response.status(status).json({ error: message });
+    if (/Prompt (cannot|must)/.test(message)) {
+      response.status(400).json({ error: message });
+      return;
+    }
+    console.error("MemAI request failed", error);
+    response.status(500).json({ error: "Image generation failed" });
   };
   app.use(errorHandler);
 

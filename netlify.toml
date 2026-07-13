@@ -13,6 +13,9 @@
 [functions."direct-image"]
   included_files = ["node_modules/@img/sharp-wasm32/lib/*"]
 
+[functions."browser-image"]
+  included_files = ["node_modules/@img/sharp-wasm32/lib/*"]
+
 [functions."image-api"]
   included_files = ["node_modules/@img/sharp-wasm32/lib/*"]
 
@@ -22,6 +25,30 @@
 [[redirects]]
   from = "/health"
   to = "/.netlify/functions/health"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/login"
+  to = "/.netlify/functions/browser-login"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/session"
+  to = "/.netlify/functions/browser-session"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/logout"
+  to = "/.netlify/functions/browser-logout"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/browser/images"
+  to = "/.netlify/functions/browser-image"
   status = 200
   force = true
 
@@ -53,3 +80,12 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; connect-src 'self'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+    Referrer-Policy = "no-referrer"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"

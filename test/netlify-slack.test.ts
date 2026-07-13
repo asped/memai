@@ -53,3 +53,21 @@ test("does not queue a Slack command with an invalid signature", async () => {
   assert.equal(result.status, 401);
   assert.equal(fetchCalled, false);
 });
+
+test("rejects a signed command from a different Slack workspace", async () => {
+  const signingSecret = "slack-secret";
+  const timestamp = String(Math.floor(Date.now() / 1_000));
+  const body = new URLSearchParams({ team_id: "T-WRONG", text: "test" }).toString();
+  const signature = `v0=${createHmac("sha256", signingSecret)
+    .update(`v0:${timestamp}:${body}`)
+    .digest("hex")}`;
+  const result = await queueSlackCommand({
+    body,
+    signature,
+    timestamp,
+    signingSecret,
+    allowedTeamId: "T-ALLOWED",
+    backgroundUrl: "https://memai.netlify.app/.netlify/functions/slack-generate-background",
+  });
+  assert.equal(result.status, 403);
+});

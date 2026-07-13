@@ -1,7 +1,8 @@
+import type { Config } from "@netlify/functions";
+import { hasValidBrowserSession, isSameOriginRequest } from "../../src/browser-auth.js";
 import { createNetlifyImageService } from "../../src/netlify-runtime.js";
 import {
   errorResponse,
-  hasValidApiToken,
   jsonResponse,
   loadNetlifyConfig,
   netlifyImageRequestSchema,
@@ -9,21 +10,16 @@ import {
 } from "../../src/netlify-http.js";
 
 export default async (request: Request) => {
-  const config = loadNetlifyConfig();
-
-  if (!hasValidApiToken(request, config.API_TOKEN)) {
-    return jsonResponse({ error: "Invalid API token" }, { status: 401 });
-  }
-
-  if (request.method === "GET") {
-    return jsonResponse(
-      { error: "Method not allowed; use POST /v1/images" },
-      { status: 405, headers: { allow: "POST" } },
-    );
-  }
-
   if (request.method !== "POST") {
     return jsonResponse({ error: "Method not allowed" }, { status: 405, headers: { allow: "POST" } });
+  }
+  if (!isSameOriginRequest(request.url, request.headers.get("origin"))) {
+    return jsonResponse({ error: "Invalid request origin" }, { status: 403 });
+  }
+
+  const config = loadNetlifyConfig();
+  if (!hasValidBrowserSession(request.headers.get("cookie"), config)) {
+    return jsonResponse({ error: "Login required" }, { status: 401 });
   }
 
   try {
@@ -40,7 +36,6 @@ export default async (request: Request) => {
 };
 
 export const config = {
-  path: "/v1/images",
-  rateLimit: { aggregateBy: "ip", windowSize: 60, windowLimit: 10 },
+  path: "/browser/images",
+  rateLimit: { aggregateBy: "ip", windowSize: 60, windowLimit: 5 },
 } satisfies Config;
-import type { Config } from "@netlify/functions";

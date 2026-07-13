@@ -34,6 +34,16 @@ header { border-bottom: 1px solid #a9a59a; padding-bottom: 24px; }
 .brand-mark { display: grid; place-items: center; width: 42px; height: 42px; background: #ff5638; border: 2px solid #181714; transform: rotate(-3deg); box-shadow: 3px 3px 0 #181714; font-size: 13px; }
 .badge, .eyebrow, .suggestions, footer { font-family: "DM Mono", monospace; }
 .badge { font-size: 11px; border: 1px solid #181714; padding: 7px 10px; border-radius: 999px; background: #d9ff66; }
+.text-button { margin-left: auto; border: 0; border-bottom: 1px solid currentColor; background: transparent; padding: 4px 0; }
+
+.login-view { padding: 92px 0; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(300px, .6fr); gap: 72px; align-items: end; }
+.login-view[hidden] { display: none; }
+.login-card { background: #fffdf7; border: 2px solid #181714; box-shadow: 8px 8px 0 #181714; padding: 28px; }
+.login-card label { margin-top: 18px; }
+.login-card label:first-child { margin-top: 0; }
+.login-card input { width: 100%; border: 1px solid #181714; background: #f2efe6; padding: 13px; font: 600 16px "Manrope", sans-serif; }
+.login-card button { width: 100%; margin-top: 24px; border: 2px solid #181714; background: #d9ff66; padding: 14px; }
+.login-card button:disabled { cursor: wait; opacity: .55; }
 
 .hero { padding: 100px 0 72px; }
 .eyebrow { margin: 0 0 18px; font-size: 12px; letter-spacing: .12em; font-weight: 500; }
@@ -76,4 +86,5 @@ footer { max-width: 1120px; margin: 0 auto; padding: 22px 32px; border-top: 1px 
   .prompt-box button { border-left: 0; border-top: 2px solid #181714; }
   .result-heading, footer { align-items: flex-start; flex-direction: column; }
   .image-frame { min-height: 300px; }
+  .login-view { grid-template-columns: 1fr; gap: 36px; padding-top: 64px; }
 }

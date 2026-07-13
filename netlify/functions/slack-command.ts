@@ -11,11 +11,13 @@ export default async (request: Request) => {
     "/.netlify/functions/slack-generate-background",
     request.url,
   ).toString();
+  const config = loadNetlifyConfig();
   const result = await queueSlackCommand({
     body,
     signature: request.headers.get("x-slack-signature") ?? undefined,
     timestamp: request.headers.get("x-slack-request-timestamp") ?? undefined,
-    signingSecret: loadNetlifyConfig().SLACK_SIGNING_SECRET,
+    signingSecret: config.SLACK_SIGNING_SECRET,
+    allowedTeamId: config.SLACK_TEAM_ID,
     backgroundUrl,
   });
 

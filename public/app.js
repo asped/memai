@@ -6,6 +6,62 @@ const image = document.querySelector("#result-image");
 const openImage = document.querySelector("#open-image");
 const error = document.querySelector("#error");
 const submitButton = form.querySelector("button[type='submit']");
+const loginView = document.querySelector("#login-view");
+const appView = document.querySelector("#app-view");
+const loginForm = document.querySelector("#login-form");
+const loginError = document.querySelector("#login-error");
+const logoutButton = document.querySelector("#logout-button");
+
+function showAuthenticated(authenticated) {
+  loginView.hidden = authenticated;
+  appView.hidden = !authenticated;
+  logoutButton.hidden = !authenticated;
+  if (!authenticated) document.querySelector("#username").focus();
+}
+
+async function checkSession() {
+  try {
+    const response = await fetch("/auth/session", { cache: "no-store" });
+    showAuthenticated(response.ok);
+  } catch {
+    showAuthenticated(false);
+    loginError.textContent = "Could not check the login. Please reload.";
+  }
+}
+
+loginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  loginError.textContent = "";
+  const button = loginForm.querySelector("button[type='submit']");
+  button.disabled = true;
+  try {
+    const response = await fetch("/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        username: loginForm.elements.username.value,
+        password: loginForm.elements.password.value,
+      }),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error ?? "Login failed");
+    loginForm.reset();
+    showAuthenticated(true);
+    promptInput.focus();
+  } catch (caught) {
+    loginError.textContent = caught instanceof Error ? caught.message : "Login failed";
+  } finally {
+    button.disabled = false;
+  }
+});
+
+logoutButton.addEventListener("click", async () => {
+  try {
+    await fetch("/auth/logout", { method: "POST" });
+  } finally {
+    showAuthenticated(false);
+  }
+});
 
 for (const button of document.querySelectorAll("[data-prompt]")) {
   button.addEventListener("click", () => {
@@ -28,12 +84,16 @@ form.addEventListener("submit", async (event) => {
   result.scrollIntoView({ behavior: "smooth", block: "start" });
 
   try {
-    const response = await fetch("/v1/images", {
+    const response = await fetch("/browser/images", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ prompt }),
     });
     const payload = await response.json();
+    if (response.status === 401) {
+      showAuthenticated(false);
+      throw new Error("Your login expired. Log in again.");
+    }
     if (!response.ok) throw new Error(payload.error ?? "Something went sideways");
 
     image.src = payload.url;
@@ -50,3 +110,5 @@ form.addEventListener("submit", async (event) => {
     submitButton.disabled = false;
   }
 });
+
+void checkSession();

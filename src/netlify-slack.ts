@@ -5,6 +5,7 @@ interface QueueSlackCommandInput {
   signature: string | undefined;
   timestamp: string | undefined;
   signingSecret: string | undefined;
+  allowedTeamId?: string | undefined;
   backgroundUrl: string;
   fetchImpl?: typeof fetch;
 }
@@ -33,6 +34,9 @@ export async function queueSlackCommand(
   }
 
   const form = new URLSearchParams(input.body);
+  if (input.allowedTeamId && form.get("team_id") !== input.allowedTeamId) {
+    return { status: 403, body: { error: "Slack workspace is not allowed" } };
+  }
   const prompt = form.get("text")?.trim() ?? "";
 
   if (!prompt) {

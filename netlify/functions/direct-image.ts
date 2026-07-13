@@ -1,6 +1,10 @@
+import type { Config } from "@netlify/functions";
+import { hasValidBrowserSession } from "../../src/browser-auth.js";
 import {
   errorResponse,
   getNetlifyRouteValue,
+  jsonResponse,
+  loadNetlifyConfig,
   netlifyImageRequestSchema,
 } from "../../src/netlify-http.js";
 import { createNetlifyImageService } from "../../src/netlify-runtime.js";
@@ -8,6 +12,10 @@ import { createNetlifyImageService } from "../../src/netlify-runtime.js";
 export default async (request: Request) => {
   if (request.method !== "GET") {
     return new Response("Method not allowed", { status: 405, headers: { allow: "GET" } });
+  }
+
+  if (!hasValidBrowserSession(request.headers.get("cookie"), loadNetlifyConfig())) {
+    return jsonResponse({ error: "Login required" }, { status: 401 });
   }
 
   try {
@@ -35,3 +43,8 @@ export default async (request: Request) => {
     return errorResponse(error);
   }
 };
+
+export const config = {
+  path: "/images/*",
+  rateLimit: { aggregateBy: "ip", windowSize: 60, windowLimit: 5 },
+} satisfies Config;

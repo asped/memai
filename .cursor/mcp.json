@@ -8,7 +8,7 @@
         "/Users/axel/Projects/ai-giphy/src/mcp.ts"
       ],
       "env": {
-        "MEMAI_API_URL": "http://localhost:4317"
+        "MEMAI_API_URL": "https://memai-138.netlify.app"
       }
     }
   }

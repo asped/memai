@@ -73,13 +73,13 @@ export async function finishSlackCommand(input: {
       }),
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("Slack image generation failed", error);
     await fetchImpl(input.responseUrl, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         response_type: "ephemeral",
-        text: `I couldn't make that image: ${message}`,
+        text: "I couldn't make that image. Please try again in a moment.",
       }),
     });
   }

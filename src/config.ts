@@ -25,7 +25,11 @@ const environmentSchema = z.object({
   PUBLIC_BASE_URL: z.string().url().default("http://localhost:4317"),
   PORT: z.coerce.number().int().min(1).max(65_535).default(4317),
   API_TOKEN: optionalEnvironmentValue,
+  BROWSER_USERNAME: z.string().min(1).default("admin"),
+  BROWSER_PASSWORD: optionalEnvironmentValue,
+  SESSION_SECRET: optionalEnvironmentValue,
   SLACK_SIGNING_SECRET: optionalEnvironmentValue,
+  SLACK_TEAM_ID: optionalEnvironmentValue,
 });
 
 export type AppConfig = z.infer<typeof environmentSchema>;

@@ -15,8 +15,26 @@
           <span>MemAI</span>
         </a>
         <span class="badge">questionable taste, excellent pixels</span>
+        <button id="logout-button" class="text-button" type="button" hidden>Log out</button>
       </header>
 
+      <section id="login-view" class="login-view" hidden>
+        <div>
+          <p class="eyebrow">MEMBERS-ONLY NONSENSE</p>
+          <h1>Prove you’re<br /><em>allowed in.</em></h1>
+          <p class="intro">Image generation is private. Log in to start making questionable pixels.</p>
+        </div>
+        <form id="login-form" class="login-card">
+          <label for="username">Username</label>
+          <input id="username" name="username" autocomplete="username" required />
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required />
+          <button type="submit">Enter MemAI ↗</button>
+          <p id="login-error" class="error" role="alert"></p>
+        </form>
+      </section>
+
+      <div id="app-view" hidden>
       <section class="hero">
         <p class="eyebrow">REACTION IMAGE MACHINE</p>
         <h1>Say it badly.<br /><em>Show it beautifully.</em></h1>
@@ -64,6 +82,7 @@
         </div>
         <p id="error" class="error" role="alert"></p>
       </section>
+      </div>
     </main>
 
     <footer>

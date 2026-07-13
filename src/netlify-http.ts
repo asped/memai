@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { loadConfig } from "./config.js";
 import { imageQualities } from "./types.js";
 
@@ -33,8 +34,11 @@ export function errorResponse(error: unknown) {
   }
 
   const message = error instanceof Error ? error.message : "Unexpected error";
-  const status = /Prompt (cannot|must)/.test(message) ? 400 : 500;
-  return jsonResponse({ error: message }, { status });
+  if (/Prompt (cannot|must)/.test(message)) {
+    return jsonResponse({ error: message }, { status: 400 });
+  }
+  console.error("MemAI request failed", error);
+  return jsonResponse({ error: "Image generation failed" }, { status: 500 });
 }
 
 export async function readJsonBody(request: Request) {
@@ -44,7 +48,12 @@ export async function readJsonBody(request: Request) {
 }
 
 export function hasValidApiToken(request: Request, token: string | undefined) {
-  return !token || request.headers.get("authorization") === `Bearer ${token}`;
+  if (!token) return false;
+  const authorization = request.headers.get("authorization") ?? "";
+  const expected = `Bearer ${token}`;
+  const actualDigest = createHmac("sha256", "memai-api-token").update(authorization).digest();
+  const expectedDigest = createHmac("sha256", "memai-api-token").update(expected).digest();
+  return timingSafeEqual(actualDigest, expectedDigest);
 }
 
 export function getNetlifyRouteValue(
