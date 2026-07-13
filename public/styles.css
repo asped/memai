@@ -1,0 +1,79 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&display=swap");
+
+:root {
+  color: #181714;
+  background: #f2efe6;
+  font-family: "Manrope", sans-serif;
+  font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    linear-gradient(rgba(24, 23, 20, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(24, 23, 20, 0.045) 1px, transparent 1px),
+    #f2efe6;
+  background-size: 24px 24px;
+}
+
+main { max-width: 1120px; margin: 0 auto; padding: 28px 32px 80px; }
+
+header, footer, .result-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+header { border-bottom: 1px solid #a9a59a; padding-bottom: 24px; }
+
+.brand { color: inherit; text-decoration: none; display: flex; align-items: center; gap: 12px; font-weight: 800; }
+.brand-mark { display: grid; place-items: center; width: 42px; height: 42px; background: #ff5638; border: 2px solid #181714; transform: rotate(-3deg); box-shadow: 3px 3px 0 #181714; font-size: 13px; }
+.badge, .eyebrow, .suggestions, footer { font-family: "DM Mono", monospace; }
+.badge { font-size: 11px; border: 1px solid #181714; padding: 7px 10px; border-radius: 999px; background: #d9ff66; }
+
+.hero { padding: 100px 0 72px; }
+.eyebrow { margin: 0 0 18px; font-size: 12px; letter-spacing: .12em; font-weight: 500; }
+h1 { margin: 0; max-width: 950px; font-size: clamp(54px, 9vw, 118px); line-height: .88; letter-spacing: -.07em; font-weight: 800; }
+h1 em { color: #ff5638; font-style: normal; }
+.intro { max-width: 630px; margin: 34px 0 44px; font-size: clamp(18px, 2vw, 24px); line-height: 1.5; }
+
+form label { display: block; font-weight: 800; margin-bottom: 10px; }
+.prompt-box { display: grid; grid-template-columns: 1fr auto; background: #fffdf7; border: 2px solid #181714; box-shadow: 8px 8px 0 #181714; }
+textarea { width: 100%; min-height: 116px; resize: vertical; border: 0; outline: 0; background: transparent; padding: 22px; font: 600 20px/1.5 "Manrope", sans-serif; color: inherit; }
+textarea::placeholder { color: #8d897f; }
+button, .secondary-button { font: 700 15px "Manrope", sans-serif; cursor: pointer; }
+.prompt-box button { border: 0; border-left: 2px solid #181714; min-width: 190px; padding: 20px; background: #d9ff66; display: flex; justify-content: space-between; align-items: center; gap: 30px; }
+.prompt-box button:hover { background: #c7f247; }
+.prompt-box button:disabled { cursor: wait; opacity: .55; }
+.prompt-box button span:last-child { font-size: 26px; }
+.suggestions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 20px; font-size: 12px; }
+.suggestions button { border: 1px solid #a9a59a; border-radius: 999px; background: transparent; padding: 8px 12px; font: inherit; }
+.suggestions button:hover { border-color: #181714; background: #fffdf7; }
+
+.result { padding: 62px 0; border-top: 1px solid #a9a59a; }
+h2 { margin: 0; font-size: clamp(36px, 5vw, 64px); letter-spacing: -.05em; }
+.secondary-button { color: inherit; text-decoration: none; border: 1px solid #181714; padding: 12px 16px; background: #fffdf7; }
+.image-frame { margin-top: 28px; min-height: 420px; display: grid; place-items: center; background: #22211d; border: 2px solid #181714; box-shadow: 8px 8px 0 #ff5638; overflow: hidden; }
+.image-frame img { display: block; max-width: 100%; max-height: 78vh; object-fit: contain; }
+.loader { color: #f2efe6; text-align: center; font-family: "DM Mono", monospace; }
+.loader span { display: inline-block; width: 12px; height: 12px; margin: 4px; background: #d9ff66; animation: bounce .9s infinite alternate; }
+.loader span:nth-child(2) { animation-delay: .15s; background: #ff5638; }
+.loader span:nth-child(3) { animation-delay: .3s; }
+@keyframes bounce { to { transform: translateY(-16px) rotate(20deg); } }
+.error { color: #b32718; font-weight: 700; }
+
+footer { max-width: 1120px; margin: 0 auto; padding: 22px 32px; border-top: 1px solid #a9a59a; font-size: 11px; }
+
+@media (max-width: 700px) {
+  main { padding: 20px 18px 60px; }
+  .badge { display: none; }
+  .hero { padding-top: 72px; }
+  .prompt-box { grid-template-columns: 1fr; }
+  .prompt-box button { border-left: 0; border-top: 2px solid #181714; }
+  .result-heading, footer { align-items: flex-start; flex-direction: column; }
+  .image-frame { min-height: 300px; }
+}

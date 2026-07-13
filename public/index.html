@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Turn a thought into a ridiculous reaction image." />
+    <title>MemAI — AI-generated nonsense worth sharing</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <a class="brand" href="/" aria-label="MemAI home">
+          <span class="brand-mark" aria-hidden="true">AI!</span>
+          <span>MemAI</span>
+        </a>
+        <span class="badge">questionable taste, excellent pixels</span>
+      </header>
+
+      <section class="hero">
+        <p class="eyebrow">REACTION IMAGE MACHINE</p>
+        <h1>Say it badly.<br /><em>Show it beautifully.</em></h1>
+        <p class="intro">Describe the moment. We’ll turn it into an original image your group chat will immediately overuse.</p>
+
+        <form id="generator-form">
+          <label for="prompt">What happened?</label>
+          <div class="prompt-box">
+            <textarea
+              id="prompt"
+              name="prompt"
+              maxlength="1000"
+              rows="3"
+              placeholder="The deploy succeeds, but nobody knows why…"
+              required
+            ></textarea>
+            <button type="submit">
+              <span>Make it weird</span>
+              <span aria-hidden="true">↗</span>
+            </button>
+          </div>
+          <div class="suggestions" aria-label="Example prompts">
+            <span>Try:</span>
+            <button type="button" data-prompt="Me opening one tiny pull request and finding 47 comments">47 comments</button>
+            <button type="button" data-prompt="The meeting that should have been a two-word Slack message">that meeting</button>
+            <button type="button" data-prompt="Friday deploy energy, represented by a very confident raccoon">Friday deploy</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="result" class="result" aria-live="polite" hidden>
+        <div class="result-heading">
+          <div>
+            <p class="eyebrow">FRESHLY GENERATED</p>
+            <h2>Your MemAI creation</h2>
+          </div>
+          <a id="open-image" class="secondary-button" target="_blank" rel="noreferrer" hidden>Open image ↗</a>
+        </div>
+        <div class="image-frame">
+          <div id="loader" class="loader">
+            <span></span><span></span><span></span>
+            <p>Teaching pixels comedic timing…</p>
+          </div>
+          <img id="result-image" alt="Generated funny reaction" hidden />
+        </div>
+        <p id="error" class="error" role="alert"></p>
+      </section>
+    </main>
+
+    <footer>
+      <span>One prompt. One image. Zero stock-photo energy.</span>
+      <span>API · Slack · Codex · Cursor</span>
+    </footer>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

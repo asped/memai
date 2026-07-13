@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "memai": {
+      "command": "/Users/axel/.nvm/versions/node/v22.14.0/bin/node",
+      "args": [
+        "--import",
+        "/Users/axel/Projects/ai-giphy/node_modules/tsx/dist/loader.mjs",
+        "/Users/axel/Projects/ai-giphy/src/mcp.ts"
+      ],
+      "env": {
+        "MEMAI_API_URL": "http://localhost:4317"
+      }
+    }
+  }
+}
