@@ -68,6 +68,30 @@ Set `API_TOKEN` to require `Authorization: Bearer <token>` on this route. Leave 
 
 The handler validates Slack's HMAC signature and five-minute replay window. It acknowledges immediately, generates in the background, then posts through Slack's temporary `response_url`. This is necessary because Slack requires acknowledgment within three seconds while image generation can take much longer.
 
+## Netlify deployment
+
+The repository includes `netlify.toml` and dedicated Netlify Functions. The static UI is served from `public/`; API and browser generation run as synchronous Functions; generated images are persisted in Netlify Blobs; and Slack image generation runs in a Background Function.
+
+Configure these environment variables in Netlify:
+
+```text
+OPENAI_API_KEY
+SLACK_SIGNING_SECRET
+OPENAI_IMAGE_MODEL=gpt-image-2
+IMAGE_QUALITY=low
+IMAGE_SIZE=640x640
+```
+
+`PUBLIC_BASE_URL` is optional on Netlify because the runtime falls back to Netlify's built-in `URL` variable. Set it explicitly when using a custom domain.
+
+The Slack command endpoint is:
+
+```text
+https://YOUR_SITE.netlify.app/integrations/slack/commands
+```
+
+The synchronous Slack Function verifies the original signature, forwards the exact signed request to the Background Function, and immediately acknowledges Slack. The Background Function verifies the signature again before generating a paid image, stores the result in Netlify Blobs, and posts it through Slack's temporary `response_url`.
+
 ## Cursor
 
 This repository includes both:

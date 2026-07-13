@@ -1,0 +1,46 @@
+[build]
+  command = "npm run build"
+  publish = "public"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "22.19.0"
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["sharp"]
+
+[[redirects]]
+  from = "/health"
+  to = "/.netlify/functions/health"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/v1/images"
+  to = "/.netlify/functions/image-api"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/images/*"
+  to = "/.netlify/functions/direct-image?prompt=:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/generated-images/*"
+  to = "/.netlify/functions/stored-image?key=:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/integrations/slack/commands"
+  to = "/.netlify/functions/slack-command"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
