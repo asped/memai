@@ -168,6 +168,10 @@ npm test
 
 The tests cover prompt shaping, the generation/storage boundary, API auth and validation, Slack signature verification, and asynchronous Slack responses.
 
+## License
+
+MemAI is free and open-source software licensed under the [MIT License](LICENSE). You may use, modify, distribute, and commercially use it, subject to the license notice.
+
 ## Source guidance
 
 - [OpenAI image generation guide](https://developers.openai.com/api/docs/guides/image-generation)

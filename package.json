@@ -2,6 +2,7 @@
   "name": "memai",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "description": "API-first funny image generator with web, Slack, and MCP integrations",
   "scripts": {
