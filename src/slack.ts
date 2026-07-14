@@ -41,6 +41,7 @@ function isSlackResponseUrl(value: string): boolean {
 
 export async function finishSlackCommand(input: {
   prompt: string;
+  userId?: string | undefined;
   responseUrl: string;
   imageService: ImageService;
   fetchImpl?: typeof fetch;
@@ -50,6 +51,9 @@ export async function finishSlackCommand(input: {
   }
 
   const fetchImpl = input.fetchImpl ?? fetch;
+  const requester = input.userId && /^[UW][A-Z0-9]+$/.test(input.userId)
+    ? `<@${input.userId}>`
+    : undefined;
 
   try {
     const image = await input.imageService.create({ prompt: input.prompt });
@@ -58,7 +62,7 @@ export async function finishSlackCommand(input: {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         response_type: "in_channel",
-        text: input.prompt,
+        text: requester ? `${requester} asked MemAI: ${input.prompt}` : input.prompt,
         blocks: [
           {
             type: "image",
@@ -67,7 +71,12 @@ export async function finishSlackCommand(input: {
           },
           {
             type: "context",
-            elements: [{ type: "plain_text", text: `Prompt: ${input.prompt}`, emoji: true }],
+            elements: [
+              {
+                type: "mrkdwn",
+                text: `${requester ? `Requested by ${requester} · ` : ""}Prompt: ${input.prompt}`,
+              },
+            ],
           },
         ],
       }),

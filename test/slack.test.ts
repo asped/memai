@@ -36,6 +36,7 @@ test("posts a completed image to the Slack response URL", async () => {
 
   await finishSlackCommand({
     prompt: "production is on fire",
+    userId: "U123ABC456",
     responseUrl: "https://hooks.slack.com/commands/example",
     imageService,
     fetchImpl,
@@ -44,4 +45,5 @@ test("posts a completed image to the Slack response URL", async () => {
   assert.equal(requests.length, 1);
   assert.match(requests[0]?.body ?? "", /images\.example/);
   assert.match(requests[0]?.body ?? "", /in_channel/);
+  assert.match(requests[0]?.body ?? "", /Requested by <@U123ABC456>/);
 });

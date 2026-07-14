@@ -79,6 +79,7 @@ export function createApp(dependencies: AppDependencies) {
         return;
       }
       const prompt = form.get("text")?.trim() ?? "";
+      const userId = form.get("user_id") ?? undefined;
       const responseUrl = form.get("response_url") ?? "";
 
       if (!prompt) {
@@ -96,6 +97,7 @@ export function createApp(dependencies: AppDependencies) {
 
       void finishSlackCommand({
         prompt,
+        userId,
         responseUrl,
         imageService: dependencies.imageService,
       }).catch((error: unknown) => {

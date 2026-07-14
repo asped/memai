@@ -28,10 +28,11 @@ export default async (request: Request) => {
       return;
     }
     const prompt = form.get("text")?.trim() ?? "";
+    const userId = form.get("user_id") ?? undefined;
     const responseUrl = form.get("response_url") ?? "";
     if (!prompt) return;
 
-    await finishSlackCommand({ prompt, responseUrl, imageService });
+    await finishSlackCommand({ prompt, userId, responseUrl, imageService });
   } catch (error) {
     // Returning normally prevents Netlify's automatic retry from generating duplicate images.
     console.error("Could not finish the Slack image command", error);
