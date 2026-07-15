@@ -17,6 +17,14 @@ test("prefers a populated Netlify wildcard query value", () => {
   assert.equal(getNetlifyRouteValue(request, "prompt", "/images/"), "hello there");
 });
 
+test("preserves Slovak characters in Netlify route prompts", () => {
+  const prompt = "žltý kôň rieši príliš ťažký štvrtok";
+  const request = new Request(
+    `https://memai.netlify.app/images/${encodeURIComponent(prompt)}`,
+  );
+  assert.equal(getNetlifyRouteValue(request, "prompt", "/images/"), prompt);
+});
+
 test("requires a configured matching bearer token", () => {
   assert.equal(hasValidApiToken(new Request("https://memai.netlify.app/v1/images"), undefined), false);
   assert.equal(

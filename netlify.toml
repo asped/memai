@@ -22,6 +22,9 @@
 [functions."slack-generate-background"]
   included_files = ["node_modules/@img/sharp-wasm32/lib/*"]
 
+[functions."slack-mention-background"]
+  included_files = ["node_modules/@img/sharp-wasm32/lib/*"]
+
 [[redirects]]
   from = "/health"
   to = "/.netlify/functions/health"
@@ -73,6 +76,12 @@
 [[redirects]]
   from = "/integrations/slack/commands"
   to = "/.netlify/functions/slack-command"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/integrations/slack/events"
+  to = "/.netlify/functions/slack-events"
   status = 200
   force = true
 

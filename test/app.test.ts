@@ -59,6 +59,21 @@ test("generates and returns an image directly from the browser route", async () 
   assert.equal(response.body.toString(), "x");
 });
 
+test("accepts Slovak characters in a browser prompt", async () => {
+  const agent = request.agent(makeApp());
+  await agent
+    .post("/auth/login")
+    .set("host", "memai.test")
+    .set("origin", "http://memai.test")
+    .send({ username: "admin", password: "test-password" })
+    .expect(200);
+
+  const response = await agent.get(
+    `/images/${encodeURIComponent("žltý kôň rieši príliš ťažký štvrtok")}`,
+  );
+  assert.equal(response.status, 200);
+});
+
 test("does not generate through GET /v1/images", async () => {
   const response = await request(makeApp())
     .get("/v1/images")

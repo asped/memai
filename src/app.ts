@@ -11,7 +11,12 @@ import {
 } from "./browser-auth.js";
 import type { AppConfig } from "./config.js";
 import type { ImageService } from "./image-service.js";
-import { finishSlackCommand, verifySlackRequest } from "./slack.js";
+import {
+  finishSlackCommand,
+  finishSlackMention,
+  parseSlackEvent,
+  verifySlackRequest,
+} from "./slack.js";
 import { imageQualities } from "./types.js";
 
 const imageRequestSchema = z.object({
@@ -33,6 +38,7 @@ export interface AppDependencies {
     | "SESSION_SECRET"
     | "SLACK_SIGNING_SECRET"
     | "SLACK_TEAM_ID"
+    | "SLACK_BOT_TOKEN"
   >;
   imageService: ImageService;
   imageDirectory: string;
@@ -103,6 +109,66 @@ export function createApp(dependencies: AppDependencies) {
       }).catch((error: unknown) => {
         console.error("Could not deliver the Slack command response", error);
       });
+    },
+  );
+
+  app.post(
+    "/integrations/slack/events",
+    express.raw({ type: "application/json", limit: "32kb" }),
+    (request, response) => {
+      if (!dependencies.config.SLACK_SIGNING_SECRET) {
+        response.status(503).json({ error: "Slack integration is not configured" });
+        return;
+      }
+
+      const body = request.body instanceof Buffer ? request.body.toString("utf8") : "";
+      const valid = verifySlackRequest({
+        body,
+        signature: request.header("x-slack-signature"),
+        timestamp: request.header("x-slack-request-timestamp"),
+        signingSecret: dependencies.config.SLACK_SIGNING_SECRET,
+      });
+      if (!valid) {
+        response.status(401).json({ error: "Invalid Slack signature" });
+        return;
+      }
+
+      let parsed;
+      try {
+        parsed = parseSlackEvent(body);
+      } catch {
+        response.status(400).json({ error: "Invalid Slack event" });
+        return;
+      }
+
+      const teamId = parsed.kind === "mention" ? parsed.mention.teamId : parsed.teamId;
+      if (
+        dependencies.config.SLACK_TEAM_ID &&
+        teamId &&
+        teamId !== dependencies.config.SLACK_TEAM_ID
+      ) {
+        response.status(403).json({ error: "Slack workspace is not allowed" });
+        return;
+      }
+      if (parsed.kind === "challenge") {
+        response.json({ challenge: parsed.challenge });
+        return;
+      }
+
+      response.json({ ok: true });
+      if (
+        parsed.kind === "mention" &&
+        !request.header("x-slack-retry-num") &&
+        dependencies.config.SLACK_BOT_TOKEN
+      ) {
+        void finishSlackMention({
+          mention: parsed.mention,
+          botToken: dependencies.config.SLACK_BOT_TOKEN,
+          imageService: dependencies.imageService,
+        }).catch((error: unknown) => {
+          console.error("Could not deliver the Slack mention response", error);
+        });
+      }
     },
   );
 

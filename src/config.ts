@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { z } from "zod";
 import { planImageSize } from "./image-size.js";
 import { imageQualities } from "./types.js";
@@ -30,6 +29,7 @@ const environmentSchema = z.object({
   SESSION_SECRET: optionalEnvironmentValue,
   SLACK_SIGNING_SECRET: optionalEnvironmentValue,
   SLACK_TEAM_ID: optionalEnvironmentValue,
+  SLACK_BOT_TOKEN: optionalEnvironmentValue,
 });
 
 export type AppConfig = z.infer<typeof environmentSchema>;

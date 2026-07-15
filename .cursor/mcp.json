@@ -4,8 +4,8 @@
       "command": "/Users/axel/.nvm/versions/node/v22.14.0/bin/node",
       "args": [
         "--import",
-        "/Users/axel/Projects/ai-giphy/node_modules/tsx/dist/loader.mjs",
-        "/Users/axel/Projects/ai-giphy/src/mcp.ts"
+        "/Users/axel/Projects/memai/node_modules/tsx/dist/loader.mjs",
+        "/Users/axel/Projects/memai/src/mcp.ts"
       ],
       "env": {
         "MEMAI_API_URL": "https://memai-138.netlify.app"

@@ -72,6 +72,21 @@ Only `GET /generated-images/:id` remains public. Generated filenames use random 
 
 The handler validates Slack's HMAC signature and five-minute replay window. It acknowledges immediately, generates in the background, then posts through Slack's temporary `response_url`. This is necessary because Slack requires acknowledgment within three seconds while image generation can take much longer.
 
+### `@MemAI` mentions and threads
+
+MemAI can also respond when mentioned in a channel or an existing thread:
+
+```text
+@MemAI žltý kôň rieši príliš ťažký štvrtok
+```
+
+1. Under **OAuth & Permissions**, add the bot scopes `app_mentions:read` and `chat:write`.
+2. Reinstall the Slack app and copy its **Bot User OAuth Token** into `SLACK_BOT_TOKEN`.
+3. Under **Event Subscriptions**, enable events and use `https://YOUR_DOMAIN/integrations/slack/events` as the Request URL.
+4. Subscribe to the bot event `app_mention` and save the changes.
+
+Top-level mentions receive a top-level bot response. Mentions made inside an existing thread receive the generated image in that same thread. The message names the requesting Slack user.
+
 ## Netlify deployment
 
 The repository includes `netlify.toml` and dedicated Netlify Functions. The static UI is served from `public/`; API and browser generation run as synchronous Functions; generated images are persisted in Netlify Blobs; and Slack image generation runs in a Background Function.
@@ -87,6 +102,8 @@ SESSION_SECRET
 SLACK_SIGNING_SECRET
 # Optional single-workspace lock
 SLACK_TEAM_ID
+# Required for @MemAI app mentions and thread replies
+SLACK_BOT_TOKEN
 OPENAI_IMAGE_MODEL=gpt-image-2
 IMAGE_QUALITY=low
 IMAGE_SIZE=640x640
@@ -101,6 +118,8 @@ https://YOUR_SITE.netlify.app/integrations/slack/commands
 ```
 
 The synchronous Slack Function verifies the original signature, forwards the exact signed request to the Background Function, and immediately acknowledges Slack. The Background Function verifies the signature again before generating a paid image, stores the result in Netlify Blobs, and posts it through Slack's temporary `response_url`.
+
+The Slack Events endpoint uses the same signature verification and background-processing pattern. It ignores Slack retry deliveries and posts mention results with `chat.postMessage`, preserving `thread_ts` for thread replies.
 
 ## Cursor
 
@@ -126,7 +145,7 @@ Codex can call the same MCP tool. Register the project server once (replace the 
 ```bash
 codex mcp add memai \
   --env MEMAI_API_URL=https://memai-138.netlify.app \
-  -- npm --prefix /Users/axel/Projects/ai-giphy run dev:mcp
+  -- npm --prefix /Users/axel/Projects/memai run dev:mcp
 ```
 
 The server reads `MEMAI_API_TOKEN` from the ignored project `.env`. Begin a new Codex task after changing the registration, then ask it to use `create_memai`.
